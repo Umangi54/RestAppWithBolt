@@ -84,18 +84,31 @@ export default function RestaurantDetailScreen() {
     }
   };
   
-  const handleShare = () => {
+    const handleShare = async () => {
     if (Platform.OS !== 'web') {
       // This would use the Share API on native platforms
       console.log('Share functionality');
     } else {
-      // On web, we could copy to clipboard or open a share dialog
-      if (navigator.share) {
-        navigator.share({
-          title: restaurant?.name,
-          text: `Check out ${restaurant?.name}!`,
-          url: window.location.href,
-        });
+      // Only run if navigator.share is available and page is secure
+      if (navigator.share && window.isSecureContext) {
+        try {
+          await navigator.share({
+            title: restaurant?.name,
+            text: `Check out ${restaurant?.name}!`,
+            url: window.location.href,
+          });
+        } catch (error) {
+          // User cancelled or permission denied
+          alert('Sharing was cancelled or not permitted.');
+        }
+      } else {
+        // Fallback: copy link to clipboard
+        try {
+          await navigator.clipboard.writeText(window.location.href);
+          alert('Link copied to clipboard!');
+        } catch {
+          alert('Unable to share or copy link.');
+        }
       }
     }
   };
